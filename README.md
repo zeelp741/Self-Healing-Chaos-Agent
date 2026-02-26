@@ -114,7 +114,7 @@ The AI agents implement these battle-tested patterns:
 | `scenario_1_redis_kill` | Redis | Kill container | Retry + in-memory fallback | **PASSED** |
 | `scenario_2_latency` | Currency Service | 3s latency | Circuit breaker | **PASSED** |
 | `scenario_3_payment_kill` | Payment Service | Kill container | Idempotent retry | **PASSED** |
-| `scenario_4_shipping_packetloss` | Shipping | 50% packet loss | Retry with backoff | Pending |
+| `scenario_4_shipping_packetloss` | Shipping | 50% packet loss | Retry with backoff | **PASSED** |
 | `scenario_5_recommendation_crash` | Recommendation | Kill container | Graceful degradation | **PASSED** |
 
 ---

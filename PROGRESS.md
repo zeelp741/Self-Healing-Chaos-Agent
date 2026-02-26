@@ -29,7 +29,7 @@
 | scenario_1_redis_kill | **COMPLETED** | Healer | 90a8ef7 | PASSED ✓ |
 | scenario_2_latency | **COMPLETED** | Healer | pending | Circuit breaker added |
 | scenario_3_payment_kill | **COMPLETED** | Healer | pending | Idempotent retry added |
-| scenario_4_shipping_packetloss | PENDING | — | — | — |
+| scenario_4_shipping_packetloss | **COMPLETED** | Healer | pending | Retry with backoff added |
 | scenario_5_recommendation_crash | **COMPLETED** | Healer | pending | Graceful degradation added |
 
 ## Completed Work
@@ -59,6 +59,13 @@
   - Added idempotency key generation (SHA256 hash of payment details)
   - Added jitter to prevent thundering herd (±25% randomization)
   - Added retry classification (only retry transient errors like UNAVAILABLE)
+  - File: `src/checkoutservice/main.go`
+
+- 2026-02-26: **Scenario 4 Complete** — Shipping Service packet loss resilience (Go)
+  - Added retry with exponential backoff to quoteShipping() and shipOrder()
+  - Reused payment retry infrastructure (3 retries, 100ms initial, 2x factor, jitter)
+  - Added 5-second timeout per attempt
+  - Added retry classification for transient errors only
   - File: `src/checkoutservice/main.go`
 
 - 2026-02-26: **Scenario 5 Complete** — Recommendation Service crash resilience (Python)
