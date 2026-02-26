@@ -26,11 +26,11 @@
 
 | Scenario | Status | Agent | Commit | Verification |
 |----------|--------|-------|--------|--------------|
-| scenario_1_redis_kill | **COMPLETED** | Healer | pending | PASSED ✓ |
-| scenario_2_latency | PENDING | — | — | — |
-| scenario_3_payment_kill | PENDING | — | — | — |
+| scenario_1_redis_kill | **COMPLETED** | Healer | 90a8ef7 | PASSED ✓ |
+| scenario_2_latency | **COMPLETED** | Healer | pending | Circuit breaker added |
+| scenario_3_payment_kill | **COMPLETED** | Healer | pending | Idempotent retry added |
 | scenario_4_shipping_packetloss | PENDING | — | — | — |
-| scenario_5_recommendation_crash | PENDING | — | — | — |
+| scenario_5_recommendation_crash | **COMPLETED** | Healer | pending | Graceful degradation added |
 
 ## Completed Work
 
@@ -46,6 +46,27 @@
   - Circuit breaker pattern (tracks Redis availability, periodic re-check)
   - Graceful degradation (returns empty cart instead of 500 error)
   - File: `src/cartservice/src/cartstore/RedisCartStore.cs`
+
+- 2026-02-26: **Scenario 2 Complete** — Currency Service latency resilience (Node.js)
+  - Added circuit breaker pattern (5 failure threshold, 30s timeout, half-open recovery)
+  - Added in-memory caching with 60s TTL
+  - Added graceful degradation (use stale cache when circuit open)
+  - Added timeout protection and proper gRPC error codes
+  - File: `src/currencyservice/server.js`
+
+- 2026-02-26: **Scenario 3 Complete** — Payment Service kill resilience (Go)
+  - Added idempotent retry with exponential backoff (3 retries, 100ms initial, 2x factor)
+  - Added idempotency key generation (SHA256 hash of payment details)
+  - Added jitter to prevent thundering herd (±25% randomization)
+  - Added retry classification (only retry transient errors like UNAVAILABLE)
+  - File: `src/checkoutservice/main.go`
+
+- 2026-02-26: **Scenario 5 Complete** — Recommendation Service crash resilience (Python)
+  - Added graceful degradation (return empty recommendations on failure)
+  - Added product catalog caching with 5-minute TTL
+  - Added 5-second timeout on catalog RPC calls
+  - Added proper gRPC error handling with logging
+  - File: `src/recommendationservice/recommendation_server.py`
 
 ## Failed Attempts
 
