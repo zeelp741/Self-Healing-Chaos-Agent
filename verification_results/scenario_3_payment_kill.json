@@ -1,0 +1,13 @@
+{
+  "scenario": "scenario_3_payment_kill",
+  "timestamp": "2026-02-26T12:45:00",
+  "chaos_survived": true,
+  "dependent_failures": [],
+  "system_status_under_chaos": "DEGRADED",
+  "fix_applied": {
+    "target": "src/checkoutservice/main.go",
+    "pattern": "idempotent_retry",
+    "description": "Idempotent retry with exponential backoff and jitter"
+  },
+  "verification_notes": "Checkoutservice retried payment calls with idempotency keys, preventing duplicate charges when payment service was killed and restored"
+}

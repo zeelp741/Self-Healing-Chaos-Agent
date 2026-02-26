@@ -1,11 +1,10 @@
-# Logs
+# Logs (keep agent_logs/ for demo purposes)
 *.log
-agent_logs/
+!agent_logs/*.log
 .playwright-mcp/
 
-# Task and verification outputs
+# Task outputs (keep verification_results/ for demo purposes)
 current_tasks/
-verification_results/
 chaos-agent/reports/
 
 # OS files

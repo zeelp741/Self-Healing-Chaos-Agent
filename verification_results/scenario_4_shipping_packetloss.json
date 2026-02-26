@@ -1,0 +1,13 @@
+{
+  "scenario": "scenario_4_shipping_packetloss",
+  "timestamp": "2026-02-26T13:00:00",
+  "chaos_survived": true,
+  "dependent_failures": [],
+  "system_status_under_chaos": "DEGRADED",
+  "fix_applied": {
+    "target": "src/checkoutservice/main.go",
+    "pattern": "retry_with_backoff",
+    "description": "Retry with exponential backoff for quoteShipping and shipOrder"
+  },
+  "verification_notes": "Checkoutservice successfully completed shipping operations despite 50% packet loss through retry mechanism"
+}

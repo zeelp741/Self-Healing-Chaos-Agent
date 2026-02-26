@@ -1,0 +1,9 @@
+{
+  "scenario": "scenario_1_redis_kill",
+  "scenario_name": "Redis Cart Kill",
+  "timestamp": "2026-02-22T02:29:30.983613",
+  "chaos_survived": true,
+  "dependent_failures": [],
+  "system_status_under_chaos": "DEGRADED",
+  "expected_pattern": "retry with exponential backoff + in-memory fallback"
+}
