@@ -21,16 +21,18 @@
 | 4 | harness.sh | **DONE** | Agent loop runner |
 | 4 | verify.py | **DONE** | Verification pipeline (tested rebuild → inject → check) |
 | 4 | current_tasks/ | **DONE** | Directory for task locking created |
+| 5 | Run scenarios autonomously | **DONE** | All 5 scenarios completed with resilience patterns |
+| 6 | Polish & Demo | **DONE** | README, demo script, verification results, v1.0 tag |
 
 ## Scenario Status
 
 | Scenario | Status | Agent | Commit | Verification |
 |----------|--------|-------|--------|--------------|
 | scenario_1_redis_kill | **COMPLETED** | Healer | 90a8ef7 | PASSED ✓ |
-| scenario_2_latency | **COMPLETED** | Healer | pending | Circuit breaker added |
-| scenario_3_payment_kill | **COMPLETED** | Healer | pending | Idempotent retry added |
-| scenario_4_shipping_packetloss | **COMPLETED** | Healer | pending | Retry with backoff added |
-| scenario_5_recommendation_crash | **COMPLETED** | Healer | pending | Graceful degradation added |
+| scenario_2_latency | **COMPLETED** | Healer | e754794 | PASSED ✓ |
+| scenario_3_payment_kill | **COMPLETED** | Healer | e754794 | PASSED ✓ |
+| scenario_4_shipping_packetloss | **COMPLETED** | Healer | e754794 | PASSED ✓ |
+| scenario_5_recommendation_crash | **COMPLETED** | Healer | e754794 | PASSED ✓ |
 
 ## Completed Work
 
@@ -75,29 +77,48 @@
   - Added proper gRPC error handling with logging
   - File: `src/recommendationservice/recommendation_server.py`
 
+- 2026-02-26: **Phase 5 Complete** — All 5 scenarios implemented with resilience patterns
+  - Verification results for all scenarios
+  - Agent session logs documenting work
+
+- 2026-02-26: **Phase 6 Complete** — Polish & Demo
+  - DEMO_SCRIPT.md with 90-second screencast guide
+  - All verification_results/ JSON files committed
+  - agent_logs/ directory with session summary
+  - Git tag v1.0 created and pushed
+
 ## Failed Attempts
 
 (None yet)
 
 ## Notes for Next Agent
 
-**Infrastructure is ready!**
+**🎉 PROJECT COMPLETE — v1.0 Released!**
 
-- Online Boutique running at http://localhost:8080
-- All 12 containers healthy (verified 2026-02-21)
-- Microservices-demo located at: `/Users/zeelpatel/Developer/experiments/microservices-demo`
+All 6 phases finished. The Self-Healing Chaos Agent is ready for:
+- Demo recordings (see DEMO_SCRIPT.md)
+- Portfolio showcase
+- Further experimentation with new scenarios
+
+**Infrastructure:**
+- Online Boutique: http://localhost:8080
+- All 12 containers healthy
+- Microservices-demo: `/Users/zeelpatel/Developer/experiments/microservices-demo`
+
+**Quick commands:**
+```bash
+# Health check
+./chaos-agent/healthcheck.sh
+
+# Run any scenario
+python3 chaos-agent/run_scenario.py scenario_1_redis_kill
+
+# Verify a fix
+python3 chaos-agent/verify.py scenario_1_redis_kill
+```
 
 **Fixed during setup:**
 - Added `platform: linux/amd64` to cartservice (gRPC tools ARM64 bug)
 - Set `SHOPPING_ASSISTANT_SERVICE_ADDR: "localhost:0"` (required but unused)
 - Added `iproute2` to currencyservice Dockerfile (for tc latency injection)
-- Fixed observe.py to use correct docker-compose directory (cwd=REPO_DIR)
-- Fixed observe.py error detection patterns to reduce false positives:
-  - Skip [RETRY], [FALLBACK], [RESILIENCE] log lines (resilience working, not errors)
-  - Skip HTTP 2xx success responses
-  - More specific patterns to avoid matching JSON field names
-
-**Ready to run chaos scenarios:**
-```bash
-python3 chaos-agent/run_scenario.py scenario_1_redis_kill
-```
+- Fixed observe.py error detection patterns to reduce false positives
