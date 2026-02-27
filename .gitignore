@@ -1,6 +1,7 @@
 # Internal planning/tooling (local-only)
 .claude/
 CLAUDE.md
+demo.tape
 agent_logs/
 verification_results/
 IMPLEMENTATION_PLAN.md

@@ -10,6 +10,10 @@ A chaos engineering system inspired by [Anthropic's "Building Effective Agents"]
   <img src="https://img.shields.io/badge/Chaos-Engineering-red?style=for-the-badge" alt="Chaos Engineering"/>
 </p>
 
+<p align="center">
+  <img src="demo.gif" alt="Demo: Chaos injection → AI diagnosis → Auto-fix → Verification" width="800"/>
+</p>
+
 ---
 
 ## How It Works
