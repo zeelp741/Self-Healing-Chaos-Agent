@@ -107,15 +107,207 @@ The AI agents implement these battle-tested patterns:
 
 ---
 
-## Scenario Status
+## Scenario Results
 
-| Scenario | Target | Attack | Expected Fix | Status |
-|----------|--------|--------|--------------|--------|
-| `scenario_1_redis_kill` | Redis | Kill container | Retry + in-memory fallback | **PASSED** |
-| `scenario_2_latency` | Currency Service | 3s latency | Circuit breaker | **PASSED** |
-| `scenario_3_payment_kill` | Payment Service | Kill container | Idempotent retry | **PASSED** |
-| `scenario_4_shipping_packetloss` | Shipping | 50% packet loss | Retry with backoff | **PASSED** |
-| `scenario_5_recommendation_crash` | Recommendation | Kill container | Graceful degradation | **PASSED** |
+All 5 chaos scenarios were run end-to-end. Each one injected a real failure, the AI agent diagnosed it, patched the source code, and the fix was verified by re-injecting the same chaos.
+
+---
+
+### Scenario 1: Redis Kill
+
+| | |
+|---|---|
+| **Target** | `redis-cart` (Redis backing the Cart Service) |
+| **Attack** | `docker kill` on Redis container |
+| **What broke** | Cart Service (C#) threw `RedisConnectionException` on every request |
+| **AI diagnosis** | `cartservice cannot connect to a downstream dependency` |
+| **Fix applied** | Retry with exponential backoff + in-memory fallback cache |
+| **File patched** | `src/cartservice/src/` |
+| **Result** | **PASSED** — system survived Redis being down |
+
+<details>
+<summary>Verification output</summary>
+
+```json
+{
+  "scenario": "scenario_1_redis_kill",
+  "scenario_name": "Redis Cart Kill",
+  "chaos_survived": true,
+  "dependent_failures": [],
+  "system_status_under_chaos": "DEGRADED",
+  "expected_pattern": "retry with exponential backoff + in-memory fallback"
+}
+```
+</details>
+
+<details>
+<summary>Code fix — Retry with exponential backoff (C#)</summary>
+
+```csharp
+// Retry with exponential backoff
+private async Task<T> RetryWithBackoff<T>(Func<Task<T>> operation)
+{
+    int retries = 0;
+    while (retries < MaxRetries)
+    {
+        try { return await operation(); }
+        catch (RedisConnectionException)
+        {
+            retries++;
+            var delay = InitialDelay * Math.Pow(2, retries) + Random.Next(100);
+            await Task.Delay((int)delay);
+        }
+    }
+    return _fallbackCache.GetOrDefault(key); // Graceful degradation
+}
+```
+</details>
+
+---
+
+### Scenario 2: Currency Latency
+
+| | |
+|---|---|
+| **Target** | `currencyservice` (Node.js) |
+| **Attack** | 3000ms latency injected via `tc netem` |
+| **What broke** | Frontend and Checkout hung waiting for currency conversion |
+| **AI diagnosis** | `currencyservice experiencing high latency` |
+| **Fix applied** | Circuit breaker with cached currency data |
+| **File patched** | `src/currencyservice/server.js` |
+| **Result** | **PASSED** — frontend used cached rates when circuit opened |
+
+<details>
+<summary>Verification output</summary>
+
+```json
+{
+  "scenario": "scenario_2_latency",
+  "chaos_survived": true,
+  "dependent_failures": [],
+  "system_status_under_chaos": "DEGRADED",
+  "fix_applied": {
+    "target": "src/currencyservice/server.js",
+    "pattern": "circuit_breaker",
+    "description": "Circuit breaker with caching and graceful degradation"
+  },
+  "verification_notes": "Frontend and checkoutservice continued to function using cached currency data when circuit opened after latency injection"
+}
+```
+</details>
+
+---
+
+### Scenario 3: Payment Kill
+
+| | |
+|---|---|
+| **Target** | `paymentservice` (Node.js) |
+| **Attack** | `docker kill` on Payment Service container |
+| **What broke** | Checkout failed at payment step, potential duplicate charges on retry |
+| **AI diagnosis** | `checkoutservice cannot reach paymentservice` |
+| **Fix applied** | Idempotent retry with exponential backoff and jitter |
+| **File patched** | `src/checkoutservice/main.go` |
+| **Result** | **PASSED** — retried with idempotency keys, no duplicate charges |
+
+<details>
+<summary>Verification output</summary>
+
+```json
+{
+  "scenario": "scenario_3_payment_kill",
+  "chaos_survived": true,
+  "dependent_failures": [],
+  "system_status_under_chaos": "DEGRADED",
+  "fix_applied": {
+    "target": "src/checkoutservice/main.go",
+    "pattern": "idempotent_retry",
+    "description": "Idempotent retry with exponential backoff and jitter"
+  },
+  "verification_notes": "Checkoutservice retried payment calls with idempotency keys, preventing duplicate charges when payment service was killed and restored"
+}
+```
+</details>
+
+---
+
+### Scenario 4: Shipping Packet Loss
+
+| | |
+|---|---|
+| **Target** | `shippingservice` (Go) |
+| **Attack** | 50% packet loss via `tc netem` |
+| **What broke** | Checkout intermittently failed to get shipping quotes and ship orders |
+| **AI diagnosis** | `shippingservice experiencing packet loss` |
+| **Fix applied** | Retry with exponential backoff for `quoteShipping` and `shipOrder` |
+| **File patched** | `src/checkoutservice/main.go` |
+| **Result** | **PASSED** — completed shipping despite 50% packet loss |
+
+<details>
+<summary>Verification output</summary>
+
+```json
+{
+  "scenario": "scenario_4_shipping_packetloss",
+  "chaos_survived": true,
+  "dependent_failures": [],
+  "system_status_under_chaos": "DEGRADED",
+  "fix_applied": {
+    "target": "src/checkoutservice/main.go",
+    "pattern": "retry_with_backoff",
+    "description": "Retry with exponential backoff for quoteShipping and shipOrder"
+  },
+  "verification_notes": "Checkoutservice successfully completed shipping operations despite 50% packet loss through retry mechanism"
+}
+```
+</details>
+
+---
+
+### Scenario 5: Recommendation Crash
+
+| | |
+|---|---|
+| **Target** | `recommendationservice` (Python) |
+| **Attack** | `docker kill` on Recommendation Service |
+| **What broke** | Frontend returned 500 errors when fetching product recommendations |
+| **AI diagnosis** | `recommendationservice is down` |
+| **Fix applied** | Graceful degradation with product caching |
+| **File patched** | `src/recommendationservice/recommendation_server.py` |
+| **Result** | **PASSED** — frontend rendered pages without recommendations, no 500s |
+
+<details>
+<summary>Verification output</summary>
+
+```json
+{
+  "scenario": "scenario_5_recommendation_crash",
+  "chaos_survived": true,
+  "dependent_failures": [],
+  "system_status_under_chaos": "DEGRADED",
+  "fix_applied": {
+    "target": "src/recommendationservice/recommendation_server.py",
+    "pattern": "graceful_degradation",
+    "description": "Graceful degradation with product caching"
+  },
+  "verification_notes": "Frontend displayed pages without recommendations when recommendation service was killed - no 500 errors propagated"
+}
+```
+</details>
+
+---
+
+### Summary
+
+| Scenario | Attack | Language | Pattern | Result |
+|----------|--------|----------|---------|--------|
+| Redis Kill | `docker kill` | C# | Retry + fallback cache | **PASSED** |
+| Currency Latency | 3s `tc netem` | Node.js | Circuit breaker | **PASSED** |
+| Payment Kill | `docker kill` | Go | Idempotent retry | **PASSED** |
+| Shipping Packet Loss | 50% `tc netem` | Go | Retry with backoff | **PASSED** |
+| Recommendation Crash | `docker kill` | Python | Graceful degradation | **PASSED** |
+
+> All 5 scenarios: chaos injected, AI diagnosed, code patched, fix verified. Zero manual intervention.
 
 ---
 
@@ -210,35 +402,6 @@ self-healing-chaos-agent/
 
 ---
 
-## Example: Scenario 1 Fix
-
-When Redis dies, the Cart Service (C#) was modified to include:
-
-```csharp
-// Retry with exponential backoff
-private async Task<T> RetryWithBackoff<T>(Func<Task<T>> operation)
-{
-    int retries = 0;
-    while (retries < MaxRetries)
-    {
-        try { return await operation(); }
-        catch (RedisConnectionException)
-        {
-            retries++;
-            var delay = InitialDelay * Math.Pow(2, retries) + Random.Next(100);
-            await Task.Delay((int)delay);
-        }
-    }
-    return _fallbackCache.GetOrDefault(key); // Graceful degradation
-}
-```
-
-The system now:
-- Retries failed Redis calls with exponential backoff
-- Falls back to an in-memory cache if Redis is unreachable
-- Returns empty cart instead of 500 error (graceful degradation)
-
----
 
 ## Observability Design
 
