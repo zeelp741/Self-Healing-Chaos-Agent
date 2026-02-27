@@ -2,6 +2,7 @@
 .claude/
 CLAUDE.md
 demo.tape
+demo-sim.sh
 agent_logs/
 verification_results/
 IMPLEMENTATION_PLAN.md
