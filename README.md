@@ -132,7 +132,7 @@ python3 --version         # Python 3.10+
 ### 1. Clone and Start Services
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/self-healing-chaos-agent.git
+git clone https://github.com/zeelp741/Self-Healing-Chaos-Agent.git
 cd self-healing-chaos-agent
 
 # Clone Online Boutique (target microservices)
@@ -204,13 +204,8 @@ self-healing-chaos-agent/
 │   ├── harness.sh           # Agent loop runner
 │   ├── healthcheck.sh       # Quick health check all services
 │   ├── HEALER_PROMPT.md     # Instructions for healing agent
-│   ├── REVIEWER_PROMPT.md   # Instructions for reviewer agent
-│   └── reports/             # Generated failure reports
-├── current_tasks/           # Agent task coordination
-├── verification_results/    # Fix verification results
-├── PROGRESS.md              # Agent-maintained status tracker
-├── IMPLEMENTATION_PLAN.md   # Detailed build guide
-└── CLAUDE.md                # Claude Code guidance
+│   └── REVIEWER_PROMPT.md   # Instructions for reviewer agent
+└── README.md
 ```
 
 ---
