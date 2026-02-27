@@ -1,9 +1,13 @@
-# Logs (keep agent_logs/ for demo purposes)
-*.log
-!agent_logs/*.log
-.playwright-mcp/
+# Internal planning/tooling (local-only)
+.claude/
+agent_logs/
+verification_results/
+IMPLEMENTATION_PLAN.md
+PROGRESS.md
+DEMO_SCRIPT.md
+FORZEEL.md
 
-# Task outputs (keep verification_results/ for demo purposes)
+# Task outputs
 current_tasks/
 chaos-agent/reports/
 
@@ -34,3 +38,4 @@ node_modules/
 # Temporary files
 /tmp/
 *.tmp
+.playwright-mcp/
